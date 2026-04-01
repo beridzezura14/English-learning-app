@@ -29,7 +29,7 @@ export default function Register() {
         data: {
         name,
         },
-        emailRedirectTo: "http://localhost:3000/login",
+        emailRedirectTo: "https://learnenglish-vert.vercel.app/login",
     },
     });
 
