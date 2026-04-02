@@ -10,12 +10,18 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  // LOGIN
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setMessage("");
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -30,6 +36,30 @@ export default function Login() {
     }
 
     setLoading(false);
+  };
+
+  // FORGOT PASSWORD
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Please enter your email first.");
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setResetLoading(true);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "https://learnenglish-vert.vercel.app/reset-password",
+    });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage("Password reset email sent. Check your inbox.");
+    }
+
+    setResetLoading(false);
   };
 
   return (
@@ -64,11 +94,17 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* ERROR */}
         {error && (
           <p className="text-red-400 text-sm mb-3">{error}</p>
         )}
 
-        {/* BUTTON */}
+        {/* SUCCESS MESSAGE */}
+        {message && (
+          <p className="text-green-400 text-sm mb-3">{message}</p>
+        )}
+
+        {/* LOGIN BUTTON */}
         <button
           disabled={loading}
           className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90 transition font-semibold"
@@ -76,13 +112,20 @@ export default function Login() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
+        {/* FORGOT PASSWORD (BELOW BUTTON) */}
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          disabled={resetLoading}
+          className="w-full mt-3 text-sm text-purple-400 hover:underline"
+        >
+          {resetLoading ? "Sending email..." : "Forgot password?"}
+        </button>
+
         {/* REGISTER LINK */}
         <p className="text-center text-sm text-gray-400 mt-5">
           Don’t have an account?{" "}
-          <Link
-            href="/register"
-            className="text-purple-400 hover:underline"
-          >
+          <Link href="/register" className="text-purple-400 hover:underline">
             Register
           </Link>
         </p>

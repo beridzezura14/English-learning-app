@@ -2,43 +2,45 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Register() {
-  const router = useRouter();
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  
+  const [success, setSuccess] = useState("");
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
 
     const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
+      email,
+      password,
+      options: {
         data: {
-        name,
+          name,
         },
-        emailRedirectTo: "https://learnenglish-vert.vercel.app/login",
-    },
+      },
     });
 
-    
-
     if (error) {
-      setError(error.message);
+      const msg = error.message.toLowerCase();
+
+      if (msg.includes("already")) {
+        setError("This email is already registered. Please login instead.");
+      } else if (msg.includes("invalid")) {
+        setError("Invalid email or password format.");
+      } else {
+        setError(error.message);
+      }
     } else {
-      router.push("/dashboard");
+      setSuccess("If an account exists, check your email to confirm it.");
     }
 
     setLoading(false);
@@ -46,12 +48,10 @@ export default function Register() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0b1220] via-[#0f172a] to-[#0b1220] text-white p-4">
-
       <form
         onSubmit={handleRegister}
         className="w-full max-w-sm bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-2xl shadow-xl"
       >
-
         <h1 className="text-3xl font-bold text-center mb-6">
           Create Account
         </h1>
@@ -84,8 +84,18 @@ export default function Register() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* ERROR */}
         {error && (
-          <p className="text-red-400 text-sm mb-3">{error}</p>
+          <p className="text-red-400 text-sm mb-3">
+            {error}
+          </p>
+        )}
+
+        {/* SUCCESS */}
+        {success && (
+          <p className="text-green-400 text-sm mb-3">
+            {success}
+          </p>
         )}
 
         {/* BUTTON */}
@@ -99,14 +109,10 @@ export default function Register() {
         {/* LOGIN LINK */}
         <p className="text-center text-sm text-gray-400 mt-5">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="text-purple-400 hover:underline"
-          >
+          <Link href="/login" className="text-purple-400 hover:underline">
             Log in
           </Link>
         </p>
-
       </form>
     </main>
   );
