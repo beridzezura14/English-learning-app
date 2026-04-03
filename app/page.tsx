@@ -97,6 +97,24 @@ export default function Home() {
                 improve every day.
               </p>
             </div>
+            {/* AI FEATURE */}
+            <div className="mt-10 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 p-6 rounded-2xl text-left">
+              <h2 className="text-xl font-semibold text-purple-300 mb-3">
+                AI Word Explainer
+              </h2>
+
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Now you can use <span className="text-white font-medium">AI</span> to
+                instantly explain any word in simple language. Just click on a word and
+                get a clear meaning, example, and translation in seconds.
+              </p>
+
+              <div className="mt-4 text-sm text-gray-400 space-y-1">
+                <p>✔ Simple explanations</p>
+                <p>✔ Multi-language support (English, Georgian, etc.)</p>
+                <p>✔ Fast AI-powered results</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
