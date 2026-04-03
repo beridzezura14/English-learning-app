@@ -67,15 +67,19 @@ export default function Login() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0b1220] via-[#0f172a] to-[#0b1220] text-white p-4">
-
       <form
         onSubmit={handleLogin}
         className="w-full max-w-sm bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-2xl shadow-xl"
       >
-
-        <h1 className="text-3xl font-bold text-center mb-6">
-          Welcome Back
-        </h1>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 mb-4 px-3 py-2 rounded-lg 
+             bg-white/5 border border-white/10 
+             text-gray-300 hover:bg-white/10 transition"
+        >
+          ← Home
+        </Link>
+        <h1 className="text-3xl font-bold text-center mb-6">Welcome Back</h1>
 
         <p className="text-center text-gray-400 text-sm mb-6">
           Login to continue
@@ -100,7 +104,7 @@ export default function Login() {
 
           <button
             type="button"
-            onClick={() => setShowPassword(prev => !prev)}
+            onClick={() => setShowPassword((prev) => !prev)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -108,14 +112,10 @@ export default function Login() {
         </div>
 
         {/* ERROR */}
-        {error && (
-          <p className="text-red-400 text-sm mb-3">{error}</p>
-        )}
+        {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
         {/* SUCCESS MESSAGE */}
-        {message && (
-          <p className="text-green-400 text-sm mb-3">{message}</p>
-        )}
+        {message && <p className="text-green-400 text-sm mb-3">{message}</p>}
 
         {/* LOGIN BUTTON */}
         <button
@@ -142,7 +142,6 @@ export default function Login() {
             Register
           </Link>
         </p>
-
       </form>
     </main>
   );
