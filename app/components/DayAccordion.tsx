@@ -29,11 +29,10 @@ export default function DayAccordion({
 }: Props) {
   const [open, setOpen] = useState(false);
 
-  // 🔥 TOAST STATE
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-  });
+  const [toast, setToast] = useState({ show: false, message: "" });
+
+  const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
+  const [aiResults, setAiResults] = useState<Record<string, string>>({});
 
   const showToast = (message: string) => {
     setToast({ show: true, message });
@@ -44,17 +43,58 @@ export default function DayAccordion({
   };
 
   const getBadgeColor = () => {
-    if (words.length < 5) {
+    if (words.length < 5)
       return "bg-red-500/20 text-red-300 border-red-500/30";
-    } else if (words.length < 10) {
+    if (words.length < 10)
       return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
-    }
     return "bg-green-500/20 text-green-300 border-green-500/30";
+  };
+
+  // 🚀 AI REQUEST
+  const handleAI = async (word: Word) => {
+    try {
+      setAiLoadingId(word.id);
+
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ word: word.word }),
+      });
+
+      if (!res.ok) throw new Error("API failed");
+
+      const data = await res.json();
+
+      setAiResults((prev) => ({
+        ...prev,
+        [word.id]: data.text,
+      }));
+
+      showToast("AI generated ✨");
+    } catch (err) {
+      setAiResults((prev) => ({
+        ...prev,
+        [word.id]: "Error loading AI 😢",
+      }));
+    } finally {
+      setAiLoadingId(null);
+    }
+  };
+
+  // ❌ CLOSE AI RESULT
+  const closeAI = (wordId: string) => {
+    setAiResults((prev) => {
+      const copy = { ...prev };
+      delete copy[wordId];
+      return copy;
+    });
   };
 
   return (
     <>
-      {/* 🔥 GLOBAL TOAST (FIXED + MOBILE SAFE) */}
+      {/* TOAST */}
       {toast.show && (
         <div className="fixed top-5 left-0 right-0 flex justify-center z-[9999] px-4 pointer-events-none animate-slideDown">
           <div className="bg-black/80 border border-white/10 text-white px-4 py-2 rounded-xl shadow-lg backdrop-blur-md text-sm">
@@ -65,7 +105,6 @@ export default function DayAccordion({
 
       {/* CARD */}
       <div className="mb-5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md bg-white/5 shadow-lg">
-
         {/* HEADER */}
         <button
           onClick={() => setOpen(!open)}
@@ -90,25 +129,20 @@ export default function DayAccordion({
             >
               {words.length} words
             </span>
-            <span className="text-gray-400 text-lg">
-              {open ? "−" : "+"}
-            </span>
+            <span className="text-gray-400 text-lg">{open ? "−" : "+"}</span>
           </div>
         </button>
 
         {/* CONTENT */}
         {open && (
           <div className="p-5 grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 bg-black/20">
-
             {words.map((w) => (
               <div
                 key={w.id}
                 className="group relative bg-white/5 border border-white/10 p-5 rounded-2xl hover:border-purple-500/30 transition"
               >
-
-                {/* WORD + FAVORITE */}
+                {/* WORD */}
                 <div className="flex justify-between items-start gap-3">
-
                   <div>
                     <h3 className="text-lg font-bold text-white group-hover:text-purple-300">
                       {w.word}
@@ -119,7 +153,7 @@ export default function DayAccordion({
                     </p>
                   </div>
 
-                  {/* ⭐ FAVORITE */}
+                  {/* FAVORITE */}
                   <button
                     onClick={() => {
                       const newValue = !w.is_favorite;
@@ -128,17 +162,16 @@ export default function DayAccordion({
                       showToast(
                         newValue
                           ? "Added to favorites"
-                          : "Removed from favorites"
+                          : "Removed from favorites",
                       );
                     }}
-                    className="text-gray-400 hover:text-yellow-400 transition"
                   >
                     <Star
                       size={18}
                       className={
                         w.is_favorite
                           ? "fill-yellow-400 text-yellow-400"
-                          : ""
+                          : "text-gray-400"
                       }
                     />
                   </button>
@@ -149,8 +182,46 @@ export default function DayAccordion({
                   {w.example}
                 </p>
 
+                {/* AI LOADING */}
+                {aiLoadingId === w.id && (
+                  <p className="text-xs text-purple-300 mt-3">
+                    AI thinking...
+                  </p>
+                )}
+
+                {/* AI RESULT + CLOSE */}
+                {aiResults[w.id] && (
+                  <div className="mt-4 rounded-xl border border-green-500/20 bg-green-500/10 p-3 backdrop-blur-md">
+                    
+                    {/* HEADER */}
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] tracking-wider text-green-400 uppercase">
+                        AI Explanation
+                      </span>
+
+                      <button
+                        onClick={() => closeAI(w.id)}
+                        className="text-[10px] text-gray-400 hover:text-white transition"
+                      >
+                        ✕ Close
+                      </button>
+                    </div>
+
+                    {/* CONTENT */}
+                    <p className="text-xs leading-relaxed text-green-200">
+                      {aiResults[w.id]}
+                    </p>
+                  </div>
+                )}
+
                 {/* ACTIONS */}
                 <div className="flex justify-end gap-2 mt-4 opacity-60 group-hover:opacity-100 transition">
+                  <button
+                    onClick={() => handleAI(w)}
+                    className="py-2 px-4 rounded-lg text-[15px] hover:bg-purple-500/20 text-purple-300 cursor-pointer"
+                  >
+                   Explain with AI
+                  </button>
 
                   <button
                     onClick={() => onEdit(w)}
@@ -169,7 +240,6 @@ export default function DayAccordion({
                 </div>
               </div>
             ))}
-
           </div>
         )}
       </div>

@@ -12,14 +12,14 @@ type Word = {
   is_favorite: boolean;
 };
 
-// 🧠 SMART NORMALIZER
+// 🧠 NORMALIZER
 const normalize = (text: string) => {
   return text
     .toLowerCase()
     .trim()
-    .replace(/\(.*?\)/g, "") // remove brackets (აზრის/ემოციის)
-    .replace(/[^\p{L}\s]/gu, "") // remove special chars
-    .replace(/\s+/g, " ") // fix spaces
+    .replace(/\(.*?\)/g, "")
+    .replace(/[^\p{L}\s]/gu, "")
+    .replace(/\s+/g, " ")
     .trim();
 };
 
@@ -36,6 +36,8 @@ export default function QuizPage() {
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
 
+  const [answered, setAnswered] = useState(false);
+
   // 📥 FETCH WORDS
   useEffect(() => {
     const fetchWords = async () => {
@@ -45,6 +47,8 @@ export default function QuizPage() {
         setWords(data);
 
         const shuffled = [...data].sort(() => Math.random() - 0.5);
+
+        // max 6 questions
         setQuizWords(shuffled.slice(0, 6));
       }
 
@@ -56,9 +60,9 @@ export default function QuizPage() {
 
   const currentWord = quizWords[currentIndex];
 
-  // 🧠 CHECK ANSWER (FIXED)
+  // 🧠 CHECK ANSWER
   const checkAnswer = () => {
-    if (!currentWord) return;
+    if (!currentWord || answered) return;
 
     const correct = normalize(currentWord.definition);
     const userAnswer = normalize(answer);
@@ -69,6 +73,7 @@ export default function QuizPage() {
       userAnswer.includes(correct);
 
     setResult(isCorrect);
+    setAnswered(true);
 
     if (isCorrect) {
       setCorrectCount((p) => p + 1);
@@ -81,6 +86,7 @@ export default function QuizPage() {
   const nextQuestion = () => {
     setAnswer("");
     setResult(null);
+    setAnswered(false);
     setCurrentIndex((prev) => prev + 1);
   };
 
@@ -102,18 +108,16 @@ export default function QuizPage() {
     );
   }
 
-  // 🎉 FINISH
+  // 🎉 FINISHED
   if (currentIndex >= quizWords.length) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-white space-y-4">
-        <div className="absolute top-4 right-4">
-          <Link
-            href="/dashboard"
-            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
-          >
-            ← Dashboard
-          </Link>
-        </div>
+        <Link
+          href="/dashboard"
+          className="absolute top-4 right-4 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
+        >
+          ← Dashboard
+        </Link>
 
         <h1 className="text-3xl font-bold">🎉 Quiz Finished!</h1>
 
@@ -125,26 +129,30 @@ export default function QuizPage() {
           ❌ Wrong: <span className="text-red-400">{wrongCount}</span>
         </div>
 
-        <div className="text-sm text-gray-400">Total: {quizWords.length}</div>
+        <div className="text-sm text-gray-400">
+          Total: {quizWords.length}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0b1220] text-white p-4">
-      {/* BACK BUTTON */}
-      <div className="absolute top-4 right-4">
-        <Link
-          href="/dashboard"
-          className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
-        >
-          ← Dashboard
-        </Link>
-      </div>
+      
+      {/* BACK */}
+      <Link
+        href="/dashboard"
+        className="absolute top-4 right-4 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
+      >
+        ← Dashboard
+      </Link>
 
       {/* QUIZ BOX */}
       <div className="w-full max-w-md bg-white/5 p-6 rounded-2xl border border-white/10">
-        <h2 className="text-xl font-bold mb-4">Translate this word</h2>
+        
+        <h2 className="text-xl font-bold mb-4">
+          Translate this word
+        </h2>
 
         <div className="text-3xl text-purple-300 font-bold mb-6">
           {currentWord.word}
@@ -155,11 +163,13 @@ export default function QuizPage() {
           onChange={(e) => setAnswer(e.target.value)}
           className="w-full p-3 rounded-xl bg-white/10 mb-3 outline-none"
           placeholder="ჩაწერე ქართული მნიშვნელობა"
+          disabled={answered}
         />
 
         <button
           onClick={checkAnswer}
-          className="w-full bg-purple-500 p-3 rounded-xl mb-3"
+          disabled={answered}
+          className="w-full bg-purple-500 p-3 rounded-xl mb-3 disabled:opacity-50"
         >
           Check
         </button>

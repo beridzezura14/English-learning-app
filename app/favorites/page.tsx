@@ -16,6 +16,9 @@ export default function FavoritesPage() {
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
+  const [aiResults, setAiResults] = useState<Record<string, string>>({});
+
   useEffect(() => {
     fetchFavorites();
   }, []);
@@ -27,14 +30,11 @@ export default function FavoritesPage() {
       .eq("is_favorite", true)
       .order("created_at", { ascending: false });
 
-    if (!error) {
-      setWords(data || []);
-    }
-
+    if (!error) setWords(data || []);
     setLoading(false);
   };
 
-  // ⭐ REMOVE FROM FAVORITES (NOT DELETE)
+  // ⭐ REMOVE FROM FAVORITES
   const removeFromFavorites = async (id: string) => {
     const { error } = await supabase
       .from("words")
@@ -42,9 +42,51 @@ export default function FavoritesPage() {
       .eq("id", id);
 
     if (!error) {
-      // instant UI update
-      setWords(prev => prev.filter(w => w.id !== id));
+      setWords((prev) => prev.filter((w) => w.id !== id));
+      setAiResults((prev) => {
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
     }
+  };
+
+  // 🤖 AI
+  const handleAI = async (word: Word) => {
+    try {
+      setAiLoadingId(word.id);
+
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word: word.word }),
+      });
+
+      if (!res.ok) throw new Error("API failed");
+
+      const data = await res.json();
+
+      setAiResults((prev) => ({
+        ...prev,
+        [word.id]: data.text,
+      }));
+    } catch (err) {
+      setAiResults((prev) => ({
+        ...prev,
+        [word.id]: "Error loading AI 😢",
+      }));
+    } finally {
+      setAiLoadingId(null);
+    }
+  };
+
+  // ❌ CLOSE AI
+  const closeAI = (id: string) => {
+    setAiResults((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
   };
 
   if (loading) {
@@ -61,28 +103,18 @@ export default function FavoritesPage() {
       {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-pink-300">
-           Favorite Words
+          ⭐ Favorite Words
         </h1>
 
         <Link
           href="/dashboard"
-          className="group flex items-center gap-2 px-4 py-2 rounded-xl
-               bg-white/5 backdrop-blur-md border border-white/10
-               text-gray-300 hover:text-white
-               hover:bg-white/10 hover:border-white/20
-               transition-all duration-300
-               shadow-lg hover:shadow-purple-500/10
-               hover:-translate-y-0.5"
+          className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition"
         >
-          <span className="text-lg group-hover:-translate-x-1 transition">
-            ←
-          </span>
-
-          <span className="text-sm font-medium">Dashboard</span>
+          ← Dashboard
         </Link>
       </div>
 
-      {/* EMPTY STATE */}
+      {/* EMPTY */}
       {words.length === 0 && (
         <div className="text-center text-gray-400 mt-20">
           No favorite words yet ⭐
@@ -96,34 +128,67 @@ export default function FavoritesPage() {
             key={w.id}
             className="bg-white/5 border border-white/10 p-5 rounded-2xl hover:border-pink-500/30 transition"
           >
+
             {/* WORD */}
             <h2 className="text-lg font-bold text-pink-300">
               {w.word}
             </h2>
 
-            {/* DEFINITION */}
             <p className="text-gray-300 mt-2">
               {w.definition}
             </p>
 
-            {/* EXAMPLE */}
             <p className="text-xs text-gray-500 italic mt-3 border-l-2 border-pink-500 pl-3">
               {w.example}
             </p>
 
-            {/* ACTIONS */}
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-xs text-pink-400">
-                ⭐ Favorite
-              </span>
+            {/* AI BUTTON */}
+            <div className="mt-4 flex gap-4">
+              <button
+                onClick={() => handleAI(w)}
+                className="text-xs px-3 py-1 rounded-lg bg-purple-500/20 text-purple-300 hover:bg-purple-500/30"
+              >
+                Explain with AI
+              </button>
 
               <button
                 onClick={() => removeFromFavorites(w.id)}
-                className="text-xs text-red-400 hover:text-red-300 transition cursor-pointer"
+                className="text-xs text-red-400 hover:text-red-300"
               >
                 Remove
               </button>
             </div>
+
+            {/* AI LOADING */}
+            {aiLoadingId === w.id && (
+              <p className="text-xs text-purple-300 mt-3">
+                AI thinking...
+              </p>
+            )}
+
+            {/* AI RESULT */}
+            {aiResults[w.id] && (
+              <div className="mt-3 bg-green-500/10 border border-green-500/20 rounded-xl p-3">
+
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[10px] text-green-300 uppercase tracking-wider">
+                    AI Explanation
+                  </span>
+
+                  <button
+                    onClick={() => closeAI(w.id)}
+                    className="text-[10px] text-gray-400 hover:text-white"
+                  >
+                    ✕ Close
+                  </button>
+                </div>
+
+                <p className="text-xs text-green-200">
+                  {aiResults[w.id]}
+                </p>
+
+              </div>
+            )}
 
           </div>
         ))}
