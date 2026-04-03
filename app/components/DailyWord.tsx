@@ -7,32 +7,17 @@ type Word = {
   word: string;
   definition: string;
   example: string;
-  day_number: number;
-  user_id: string;
 };
 
 export default function DailyWord({ words }: { words: Word[] }) {
   const [dailyWord, setDailyWord] = useState<Word | null>(null);
 
   useEffect(() => {
-    if (!words.length) return;
+    if (!words || words.length === 0) return;
 
     const today = new Date();
 
-    // 🔥 unique key for today
-    const storageKey = `daily-word-${
-      today.getFullYear()
-    }-${today.getMonth() + 1}-${today.getDate()}`;
-
-    // 🔥 check if already saved for today
-    const saved = localStorage.getItem(storageKey);
-
-    if (saved) {
-      setDailyWord(JSON.parse(saved));
-      return;
-    }
-
-    // 🔥 stable seed (same day = same word)
+    // 🔥 stable daily key (same for everyone)
     const seed =
       today.getFullYear() * 10000 +
       (today.getMonth() + 1) * 100 +
@@ -43,7 +28,6 @@ export default function DailyWord({ words }: { words: Word[] }) {
     const selected = words[index];
 
     setDailyWord(selected);
-    localStorage.setItem(storageKey, JSON.stringify(selected));
   }, [words]);
 
   if (!dailyWord) return null;

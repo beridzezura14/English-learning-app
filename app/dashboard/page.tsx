@@ -215,7 +215,7 @@ export default function Dashboard() {
       {/* TOP */}
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
 
-        <DailyWord words={words.filter(w => w.is_favorite)} />
+        <DailyWord words={words} />
 
         <div className="flex flex-col gap-4">
           <SearchBar
