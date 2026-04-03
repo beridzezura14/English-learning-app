@@ -219,11 +219,11 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-4">
           <SearchBar
+            words={words ?? []}
             search={search}
             setSearch={setSearch}
             showDropdown={showDropdown}
             setShowDropdown={setShowDropdown}
-            searchResults={words}
           />
 
           <Stats level={level} wordsCount={words.length} />
