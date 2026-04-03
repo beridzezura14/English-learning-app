@@ -13,7 +13,10 @@ export default function DailyWord({ words }: { words: Word[] }) {
   const [dailyWord, setDailyWord] = useState<Word | null>(null);
 
   useEffect(() => {
-    if (!words || words.length === 0) return;
+    if (!words || words.length === 0) {
+      setDailyWord(null);
+      return;
+    }
 
     const today = new Date();
 
@@ -25,11 +28,21 @@ export default function DailyWord({ words }: { words: Word[] }) {
 
     const index = seed % words.length;
 
-    const selected = words[index];
-
-    setDailyWord(selected);
+    setDailyWord(words[index]);
   }, [words]);
 
+  // ❗ if no words at all
+  if (!words || words.length === 0) {
+    return (
+      <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-gray-400 text-center">
+        No words have been added yet 📚
+        <br />
+        Start by adding your first word 🚀
+      </div>
+    );
+  }
+
+  // ❗ safety fallback
   if (!dailyWord) return null;
 
   return (
