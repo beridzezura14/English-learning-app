@@ -1,4 +1,4 @@
-# English Learning App
+# Language Learning App
 
 A modern vocabulary learning web app built with **Next.js, Supabase, and AI integration**.
 
@@ -42,7 +42,7 @@ AI works only on button click (not auto-generated).
 ------------------------------------------------------------------------------
 
 
-# ინგლისური ენის სასწავლო აპლიკაცია
+# ინგლისური და ზოგადად ენის სასწავლო აპლიკაცია
 
 თანამედროვე სიტყვების სწავლის ვებ აპი, შექმნილი **Next.js, Supabase და AI ინტეგრაციით**.
 
