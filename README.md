@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# English Learning App
 
-## Getting Started
+A modern vocabulary learning web app built with **Next.js, Supabase, and AI integration**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+-  Daily Words system (random word from database)
+-  Favorites system (save/remove words)
+-  AI Word Explainer (explains any word in simple language)
+-  Multilingual support (English, Georgian, etc.)
+-  Search & filter words
+-  Progress tracking UI
+-  Modern responsive UI (mobile friendly)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## AI Feature
 
-## Learn More
+This project includes an AI-powered word explainer.
 
-To learn more about Next.js, take a look at the following resources:
+Users can:
+- Click a word
+- Get instant explanation
+- See meaning + example
+- Receive simple language breakdown
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+AI works only on button click (not auto-generated).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Next.js (App Router)
+- React
+- TypeScript
+- Supabase (Database & Auth)
+- OpenAI / Groq API (AI feature)
+- Tailwind CSS
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+------------------------------------------------------------------------------
+
+
+# ინგლისური ენის სასწავლო აპლიკაცია
+
+თანამედროვე სიტყვების სწავლის ვებ აპი, შექმნილი **Next.js, Supabase და AI ინტეგრაციით**.
+
+---
+
+## ფუნქციები
+
+-  ყოველდღიური სიტყვები (ბაზიდან შემთხვევითი სიტყვა)
+-  ფავორიტების სისტემა (დამატება/ამოღება)
+-  AI სიტყვების ახსნა (სიტყვის მარტივად ახსნა)
+-  მრავალენოვანი მხარდაჭერა
+-  სიტყვების ძიება და ფილტრი
+-  პროგრესის UI
+-  თანამედროვე დიზაინი (მობილზე ადაპტირებული)
+
+---
+
+## AI ფუნქცია
+
+აპლიკაციაში ჩაშენებულია AI სისტემა.
+
+მომხმარებელს შეუძლია:
+- დააჭიროს სიტყვას
+- მიიღოს ახსნა წამებში
+- ნახოს მნიშვნელობა + მაგალითი
+- მიიღოს მარტივი განმარტება
+
+AI მუშაობს მხოლოდ ღილაკზე დაჭერით (არ არის ავტომატური).
+
+---
+
+## ტექნოლოგიები
+
+- Next.js (App Router)
+- React
+- TypeScript
+- Supabase (ბაზა და ავტორიზაცია)
+- OpenAI / Groq API (AI)
+- Tailwind CSS
+
