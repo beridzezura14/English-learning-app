@@ -38,18 +38,18 @@ export default function Stats({ level, wordsCount }: Props) {
   }, [streak]);
 
   return (
-    <div className="grid grid-cols-3 gap-3 mb-6">
-      <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-center">
+    <div className="grid grid-cols-3 gap-3">
+      <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-center h-23 pt-5">
         <p className="text-gray-400 text-[11px]">Level</p>
         <h2 className="text-xl text-purple-300 font-bold">{level}</h2>
       </div>
 
-      <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-center">
+      <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-center h-23 pt-5">
         <p className="text-gray-400 text-[11px]">Streak</p>
         <h2 className="text-xl text-orange-300 font-bold">🔥 {streak}</h2>
       </div>
 
-      <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-center">
+      <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-center h-23 pt-5">
         <p className="text-gray-400 text-[11px]">Words</p>
         <h2 className="text-xl text-green-300 font-bold">{wordsCount}</h2>
       </div>

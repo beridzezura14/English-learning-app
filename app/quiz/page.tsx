@@ -4,17 +4,35 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
+type Word = {
+  id: string;
+  word: string;
+  definition: string;
+  example: string;
+  is_favorite: boolean;
+};
+
+// 🧠 SMART NORMALIZER
+const normalize = (text: string) => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\(.*?\)/g, "") // remove brackets (აზრის/ემოციის)
+    .replace(/[^\p{L}\s]/gu, "") // remove special chars
+    .replace(/\s+/g, " ") // fix spaces
+    .trim();
+};
+
 export default function QuizPage() {
-  const [words, setWords] = useState<any[]>([]);
+  const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [quizWords, setQuizWords] = useState<any[]>([]); // 👈 6 random words
+  const [quizWords, setQuizWords] = useState<Word[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<null | boolean>(null);
 
-  // 📊 SCORE
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
 
@@ -26,7 +44,6 @@ export default function QuizPage() {
       if (!error && data) {
         setWords(data);
 
-        // 🎲 RANDOM 6 WORDS
         const shuffled = [...data].sort(() => Math.random() - 0.5);
         setQuizWords(shuffled.slice(0, 6));
       }
@@ -39,14 +56,18 @@ export default function QuizPage() {
 
   const currentWord = quizWords[currentIndex];
 
-  // 🧠 CHECK ANSWER
+  // 🧠 CHECK ANSWER (FIXED)
   const checkAnswer = () => {
     if (!currentWord) return;
 
-    const correct = currentWord.definition.trim().toLowerCase();
-    const userAnswer = answer.trim().toLowerCase();
+    const correct = normalize(currentWord.definition);
+    const userAnswer = normalize(answer);
 
-    const isCorrect = correct === userAnswer;
+    const isCorrect =
+      correct === userAnswer ||
+      correct.includes(userAnswer) ||
+      userAnswer.includes(correct);
+
     setResult(isCorrect);
 
     if (isCorrect) {
@@ -81,10 +102,19 @@ export default function QuizPage() {
     );
   }
 
-  // 🎉 FINISH SCREEN
+  // 🎉 FINISH
   if (currentIndex >= quizWords.length) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-white space-y-4">
+        <div className="absolute top-4 right-4">
+          <Link
+            href="/dashboard"
+            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
+          >
+            ← Dashboard
+          </Link>
+        </div>
+
         <h1 className="text-3xl font-bold">🎉 Quiz Finished!</h1>
 
         <div className="text-lg">
@@ -102,24 +132,17 @@ export default function QuizPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0b1220] text-white p-4">
+      {/* BACK BUTTON */}
       <div className="absolute top-4 right-4">
         <Link
           href="/dashboard"
-          className="group flex items-center gap-2 px-4 py-2 rounded-xl
-               bg-white/5 backdrop-blur-md border border-white/10
-               text-gray-300 hover:text-white
-               hover:bg-white/10 hover:border-white/20
-               transition-all duration-300
-               shadow-lg hover:shadow-purple-500/10
-               hover:-translate-y-0.5"
+          className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
         >
-          <span className="text-lg group-hover:-translate-x-1 transition">
-            ←
-          </span>
-
-          <span className="text-sm font-medium">Dashboard</span>
+          ← Dashboard
         </Link>
       </div>
+
+      {/* QUIZ BOX */}
       <div className="w-full max-w-md bg-white/5 p-6 rounded-2xl border border-white/10">
         <h2 className="text-xl font-bold mb-4">Translate this word</h2>
 

@@ -1,20 +1,16 @@
 "use client";
+
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
 import Stats from "../components/Stats";
 import ProgressBar from "../components/ProgressBar";
 import WordModal from "../components/WordModal";
 import DayAccordion from "../components/DayAccordion";
+import DailyWord from "../components/DailyWord";
 
-
-
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-// import { Trash2, Edit3, X } from "lucide-react";
-
-
-
 
 type Word = {
   id: string;
@@ -23,21 +19,15 @@ type Word = {
   example: string;
   day_number: number;
   user_id: string;
+  is_favorite?: boolean;
+  created_at?: string;
 };
-
-// type DayAccordionProps = {
-//   day: string;
-//   words: Word[];
-//   onEdit: (w: Word) => void;
-//   onDelete: (id: string) => void;
-// };
 
 export default function Dashboard() {
   const router = useRouter();
-  const searchRef = useRef<HTMLDivElement>(null);
 
   const [words, setWords] = useState<Word[]>([]);
-  const [user, setUser] = useState<{ id: string; user_metadata?: { name?: string } } | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const [word, setWord] = useState("");
@@ -51,7 +41,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // 🔐 AUTH + FETCH
+  // 🔐 INIT (ONLY ONCE)
   useEffect(() => {
     const init = async () => {
       const { data } = await supabase.auth.getUser();
@@ -67,7 +57,8 @@ export default function Dashboard() {
         .from("words")
         .select("*")
         .eq("user_id", data.user.id)
-        .order("day_number", { ascending: true });
+        .order("day_number", { ascending: true })
+        .order("created_at", { ascending: true });
 
       setWords(wordsData || []);
       setLoading(false);
@@ -76,102 +67,34 @@ export default function Dashboard() {
     init();
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target as Node)
-      ) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleEsc);
-
-    return () => document.removeEventListener("keydown", handleEsc);
-  }, []);
-
-  const filteredWords = useMemo(() => {
-    if (!search.trim()) return words;
-
-    return words.filter((w) => {
-      const word = w.word?.toLowerCase() || "";
-      const def = w.definition?.toLowerCase() || "";
-      const example = w.example?.toLowerCase() || "";
-      const q = search.toLowerCase();
-
-      return word.includes(q) || def.includes(q) || example.includes(q);
-    });
-  }, [words, search]);
-
-  const searchResults = useMemo(() => {
-    if (!search.trim()) return [];
-
-    return words.filter((w) => {
-      const q = search.toLowerCase();
-
-      return (
-        w.word?.toLowerCase().includes(q) ||
-        w.definition?.toLowerCase().includes(q)
-      );
-    });
-  }, [search, words]);
-
-  // 📊 GROUP BY DAY
-  const groupedWords = useMemo(() => {
-    return filteredWords.reduce((acc: Record<number, Word[]>, w: Word) => {
-      const day = w.day_number || 1;
-
-      if (!acc[day]) acc[day] = [];
-      acc[day].push(w);
-
-      return acc;
-    }, {});
-  }, [filteredWords]);
-
-  // 📈 STATS
-  const level = Math.floor(words.length / 10) + 1;
-  const totalProgress = Math.min((words.length / 2000) * 100, 100);
-
-  const daySet = new Set(words.map((w) => w.day_number));
-  let day = 1;
-
-  while (daySet.has(day)) {
-    day++;
-  }
-
-  // ➕ ADD
+  // ➕ ADD (LOCAL STATE ONLY)
   const addWord = async () => {
-    if (!user) return; // 👈 IMPORTANT GUARD
+    if (!user) return;
 
-    await supabase.from("words").insert({
-      word,
-      definition,
-      example,
-      day_number: dayNumber,
-      user_id: user.id,
-    });
+    const { data } = await supabase
+      .from("words")
+      .insert({
+        word,
+        definition,
+        example,
+        day_number: dayNumber,
+        user_id: user.id,
+        is_favorite: false,
+      })
+      .select()
+      .single();
+
+    if (data) {
+      setWords(prev => [...prev, data]);
+    }
 
     resetForm();
-    refresh();
   };
 
-  // ✏️ UPDATE
+  // ✏️ UPDATE (LOCAL STATE)
   const updateWord = async () => {
+    if (!editingId || !user) return;
+
     await supabase
       .from("words")
       .update({
@@ -180,29 +103,48 @@ export default function Dashboard() {
         example,
         day_number: dayNumber,
       })
-      .eq("id", editingId);
+      .eq("id", editingId)
+      .eq("user_id", user.id);
+
+    setWords(prev =>
+      prev.map(w =>
+        w.id === editingId
+          ? { ...w, word, definition, example, day_number: dayNumber }
+          : w
+      )
+    );
 
     resetForm();
-    refresh();
   };
 
-  // 🗑 DELETE
+  // 🗑 DELETE (LOCAL STATE)
   const deleteWord = async (id: string) => {
-    await supabase.from("words").delete().eq("id", id);
-    refresh();
+    if (!user) return;
+
+    await supabase
+      .from("words")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    setWords(prev => prev.filter(w => w.id !== id));
   };
 
-  // 🔄 REFRESH
-  const refresh = async () => {
-    if (!user) return; // 👈 IMPORTANT
+  // ⭐ FAVORITE (NO REFRESH)
+  const toggleFavorite = async (id: string, value: boolean) => {
+    if (!user) return;
 
-    const { data } = await supabase
+    await supabase
       .from("words")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("day_number", { ascending: true });
+      .update({ is_favorite: value })
+      .eq("id", id)
+      .eq("user_id", user.id);
 
-    setWords(data || []);
+    setWords(prev =>
+      prev.map(w =>
+        w.id === id ? { ...w, is_favorite: value } : w
+      )
+    );
   };
 
   // RESET
@@ -215,11 +157,39 @@ export default function Dashboard() {
     setOpenModal(false);
   };
 
-  // LOGOUT
-  const logout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
-  };
+  // 🔎 SEARCH
+  const filteredWords = useMemo(() => {
+    if (!search.trim()) return words;
+
+    const q = search.toLowerCase();
+
+    return words.filter(w =>
+      w.word.toLowerCase().includes(q) ||
+      w.definition.toLowerCase().includes(q) ||
+      w.example.toLowerCase().includes(q)
+    );
+  }, [words, search]);
+
+  // 📦 GROUP BY DAY
+  const groupedWords = useMemo(() => {
+    return filteredWords.reduce((acc: Record<number, Word[]>, w) => {
+      const day = w.day_number || 1;
+      if (!acc[day]) acc[day] = [];
+      acc[day].push(w);
+      return acc;
+    }, {});
+  }, [filteredWords]);
+
+  // ⭐ STABLE DAY ORDER (IMPORTANT FIX)
+  const sortedDays = useMemo(() => {
+    return Object.keys(groupedWords)
+      .map(Number)
+      .sort((a, b) => a - b);
+  }, [groupedWords]);
+
+  // 📊 STATS
+  const level = Math.floor(words.length / 10) + 1;
+  const totalProgress = Math.min((words.length / 2000) * 100, 100);
 
   if (loading) {
     return (
@@ -230,29 +200,34 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-linear-to-b from-[#0b1220] via-[#0f172a] to-[#0b1220] text-white p-6">
+    <main className="min-h-screen bg-gradient-to-b from-[#0b1220] via-[#0f172a] to-[#0b1220] text-white p-6">
+
       {/* HEADER */}
       <Header
         user={user}
-        logout={logout}
+        logout={async () => {
+          await supabase.auth.signOut();
+          router.push("/login");
+        }}
         openModal={() => setOpenModal(true)}
       />
-      {/* SEARCH */}
 
-      <div className="grid lg:grid-cols-2 gap-4">
-        <SearchBar
-          search={search}
-          setSearch={setSearch}
-          showDropdown={showDropdown}
-          setShowDropdown={setShowDropdown}
-          searchResults={searchResults}
-        />
-        {/* STATS */}
-        <Stats
-          level={level}
-          wordsCount={words.length}
-        />
+      {/* TOP */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-6">
 
+        <DailyWord words={words.filter(w => w.is_favorite)} />
+
+        <div className="flex flex-col gap-4">
+          <SearchBar
+            search={search}
+            setSearch={setSearch}
+            showDropdown={showDropdown}
+            setShowDropdown={setShowDropdown}
+            searchResults={words}
+          />
+
+          <Stats level={level} wordsCount={words.length} />
+        </div>
       </div>
 
       {/* PROGRESS */}
@@ -261,12 +236,15 @@ export default function Dashboard() {
         target={2000}
         progress={totalProgress}
       />
+
       {/* EMPTY */}
       {words.length === 0 && (
-        <div className="text-center text-gray-400 mt-20">No words yet 🚀</div>
+        <div className="text-center text-gray-400 mt-20">
+          No words yet 🚀
+        </div>
       )}
 
-
+      {/* MODAL */}
       <WordModal
         open={openModal}
         editingId={editingId}
@@ -282,11 +260,12 @@ export default function Dashboard() {
         onSubmit={editingId ? updateWord : addWord}
       />
 
-      {Object.keys(groupedWords).map((day) => (
+      {/* DAYS (FIXED ORDER) */}
+      {sortedDays.map(day => (
         <DayAccordion
           key={day}
-          day={day}
-          words={groupedWords[Number(day)]}
+          day={String(day)}
+          words={groupedWords[day]}
           onEdit={(w) => {
             setEditingId(w.id);
             setWord(w.word);
@@ -296,10 +275,9 @@ export default function Dashboard() {
             setOpenModal(true);
           }}
           onDelete={deleteWord}
+          onToggleFavorite={toggleFavorite}
         />
       ))}
     </main>
   );
 }
-
-

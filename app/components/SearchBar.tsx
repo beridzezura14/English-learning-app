@@ -55,7 +55,7 @@ export default function SearchBar({
   }, [setShowDropdown]);
 
   return (
-    <div ref={searchRef} className="relative mb-6">
+    <div ref={searchRef} className="relative">
       <input
         value={search}
         onChange={(e) => {
@@ -68,7 +68,7 @@ export default function SearchBar({
       />
 
       {/* SEARCH ICON */}
-      <span className="absolute left-3 top-6 text-gray-400">🔍</span>
+      <span className="absolute left-3 top-3 lg:top-6 text-gray-400">🔍</span>
 
       {/* CLEAR BUTTON */}
       {search && (

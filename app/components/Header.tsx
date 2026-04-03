@@ -1,8 +1,10 @@
 "use client";
 
-import { LogOut, Plus } from "lucide-react";
+import {LogOut, Plus } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+
 
 type User = {
   email?: string;
@@ -88,13 +90,12 @@ export default function Header({
 
       {/* LEFT SIDE */}
       <div className="relative">
-
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        {/* <h1 className="text-2xl font-bold">Dashboard</h1> */}
 
         {/* NAME */}
         <button
           onClick={() => setOpenProfile(!openProfile)}
-          className="flex items-center gap-2 mt-1 text-left 
+          className="flex items-center gap-2 text-left 
                     px-3 py-1.5 rounded-xl
                     bg-white/5 hover:bg-white/10 
                     border border-white/10 
@@ -212,27 +213,30 @@ export default function Header({
       </div>
 
       {/* RIGHT ACTIONS */}
-      <div className="flex items-center gap-2">
 
-        <button
-          onClick={logout}
-          className="w-10 h-10 flex items-center justify-center rounded-xl
-                     bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition"
-        >
-          <LogOut size={18} />
-        </button>
+      <div className="flex gap-2">
+        <Link href="/favorites">
+          <button
+            className="w-10 h-10 flex items-center justify-center rounded-xl
+                      bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 transition cursor-pointer"
+          >
+            ⭐
+          </button>
+        </Link>
 
-        <button
-          className="w-15 h-10 flex items-center justify-center rounded-xl
-                     bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition"
-        >
-          Quiz
-        </button>
+        <Link href="/quiz">
+          <button
+            className="w-20 h-10 flex items-center justify-center rounded-xl
+                      bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition cursor-pointer"
+          >
+            Quiz
+          </button>
+        </Link>
 
         <button
           onClick={openModal}
           className="w-10 h-10 flex items-center justify-center rounded-xl
-                     bg-purple-500 hover:bg-purple-600 transition"
+                    bg-purple-500 hover:bg-purple-600 transition cursor-pointer"
         >
           <Plus size={18} />
         </button>
