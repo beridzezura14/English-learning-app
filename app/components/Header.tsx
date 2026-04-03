@@ -185,14 +185,14 @@ return (
 
       <Link href="/favorites">
         <button className="w-full h-10 flex items-center justify-center rounded-xl
-                          bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20">
+                          bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 cursor-pointer">
           ⭐
         </button>
       </Link>
 
       <Link href="/quiz">
-        <button className="w-full h-10 flex items-center justify-center rounded-xl
-                          bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20">
+        <button className="w-full h-10 px-7 flex items-center justify-center rounded-xl
+                          bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 cursor-pointer">
           Quiz
         </button>
       </Link>
@@ -200,7 +200,7 @@ return (
       <button
         onClick={openModal}
         className="w-full h-10 flex items-center justify-center rounded-xl
-                  bg-purple-500 hover:bg-purple-600"
+                  bg-purple-500 hover:bg-purple-600 cursor-pointer"
       >
         <Plus size={18} />
       </button>
