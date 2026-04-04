@@ -1,9 +1,11 @@
 "use client";
 
-import {LogOut, Plus } from "lucide-react";
+import {LogOut, Plus, Star} from "lucide-react";
+// import {  } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+
 
 
 type User = {
@@ -86,7 +88,9 @@ export default function Header({
   };
 
 return (
-  <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 bg-white/5 border border-white/10 p-4 rounded-2xl gap-3">
+  <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 
+bg-white/5 backdrop-blur-xl border border-white/10 
+p-4 rounded-2xl gap-3 sticky top-4 z-50">
 
     {/* LEFT SIDE */}
     <div className="relative w-full md:w-auto">
@@ -184,9 +188,11 @@ return (
     ">
 
       <Link href="/favorites">
-        <button className="w-full h-10 flex items-center justify-center rounded-xl
-                          bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 cursor-pointer">
-          ⭐
+        <button
+          className="w-full h-10 flex items-center justify-center rounded-xl
+          bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 cursor-pointer"
+        >
+          <Star className="w-5 h-5 text-yellow-400" />
         </button>
       </Link>
 

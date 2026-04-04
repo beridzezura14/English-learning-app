@@ -180,14 +180,14 @@ export default function Dashboard() {
     }, {});
   }, [filteredWords]);
 
-  // ⭐ STABLE DAY ORDER (IMPORTANT FIX)
+  // STABLE DAY ORDER (IMPORTANT FIX)
   const sortedDays = useMemo(() => {
     return Object.keys(groupedWords)
       .map(Number)
       .sort((a, b) => a - b);
   }, [groupedWords]);
 
-  // 📊 STATS
+  // STATS
   const level = Math.floor(words.length / 10) + 1;
   const totalProgress = Math.min((words.length / 2000) * 100, 100);
 
@@ -200,7 +200,7 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0b1220] via-[#0f172a] to-[#0b1220] text-white p-6">
+    <main className="min-h-screen bg-gradient-to-b from-[#0b1220] via-[#0f172a] to-[#0b1220] text-white p-6 ">
 
       {/* HEADER */}
       <Header
