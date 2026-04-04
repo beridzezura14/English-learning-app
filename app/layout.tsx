@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Language Learning App",
   description: "Learn words daily and build vocabulary",
   icons: {
-    icon: "/user.png",
+    icon: "/book.png",
   },
 };
 
