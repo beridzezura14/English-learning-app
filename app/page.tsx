@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BookOpen, Brain, TrendingUp } from "lucide-react";
 
 export default function Home() {
   return (
@@ -35,21 +36,32 @@ export default function Home() {
         {/* FEATURE CARDS */}
         <div className="grid sm:grid-cols-3 gap-4 mt-12 text-left">
           <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-            <h3 className="font-semibold text-purple-300">📘 Daily Words</h3>
+            <h3 className="font-semibold text-purple-300 flex items-center gap-2">
+              <BookOpen size={25} />
+              <span className="text-white">Daily Words</span> 
+            </h3>
             <p className="text-gray-400 text-sm mt-2">
               Learn 10 new words every day
             </p>
           </div>
 
           <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-            <h3 className="font-semibold text-purple-300">🧠 Practice</h3>
+            <h3 className="font-semibold text-purple-300 flex items-center gap-2">
+              <Brain size={25} />
+              <span className="text-white">Practice</span> 
+
+            </h3>
             <p className="text-gray-400 text-sm mt-2">
               Use examples to remember faster
             </p>
           </div>
 
           <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-            <h3 className="font-semibold text-purple-300">🚀 Progress</h3>
+            <h3 className="font-semibold text-purple-300 flex items-center gap-2">
+              <TrendingUp size={25} />
+              <span className="text-white">Progress</span> 
+
+            </h3>
             <p className="text-gray-400 text-sm mt-2">
               Track your daily improvement
             </p>
@@ -113,6 +125,24 @@ export default function Home() {
                 <p>✔ Simple explanations</p>
                 <p>✔ Multi-language support (English, Georgian, etc.)</p>
                 <p>✔ Fast AI-powered results</p>
+              </div>
+            </div>
+            {/* PRONUNCIATION FEATURE */}
+            <div className="mt-6 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 p-6 rounded-2xl text-left">
+              <h2 className="text-xl font-semibold text-blue-300 mb-3">
+                Pronunciation Support
+              </h2>
+
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Every word includes a <span className="text-white font-medium">real-time pronunciation feature</span>.
+                Click the speaker icon to hear how native speakers pronounce each word clearly and slowly.
+              </p>
+
+              <div className="mt-4 text-sm text-gray-400 space-y-1">
+                <p>✔ Native-like English voice</p>
+                <p>✔ Clear and slow pronunciation mode</p>
+                <p>✔ One-click audio playback</p>
+                <p>✔ Works across all words in the system</p>
               </div>
             </div>
           </div>

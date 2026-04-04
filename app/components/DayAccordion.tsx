@@ -54,7 +54,7 @@ export default function DayAccordion({
     return "bg-green-500/20 text-green-300 border-green-500/30";
   };
 
-  // 🚀 AI REQUEST
+  // AI REQUEST
   const handleAI = async (word: Word) => {
     try {
       setAiLoadingId(word.id);
@@ -88,83 +88,49 @@ export default function DayAccordion({
   };
 
   //  PRONUNCIATION FUNCTION
-const playPronunciation = async (word: string, id: string) => {
-  try {
-    setAudioLoadingId(id);
+  const playPronunciation = (word: string, id: string) => {
+    try {
+      setAudioLoadingId(id);
 
-    // FIX: stop "gudva" / overlapping voice
-    speechSynthesis.cancel();
+      // 🔥 FIX: stop overlapping / "gudva" voice
+      speechSynthesis.cancel();
 
-    const res = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
-    );
+      const utterance = new SpeechSynthesisUtterance(word);
 
-    if (!res.ok) throw new Error("API error");
+      const voices = speechSynthesis.getVoices();
 
-    const data = await res.json();
+      const preferredVoice =
+        voices.find(
+          (v) =>
+            v.lang.includes("en-US") &&
+            (v.name.toLowerCase().includes("google") ||
+              v.name.toLowerCase().includes("microsoft"))
+        ) ||
+        voices.find((v) => v.lang.includes("en-US")) ||
+        voices[0];
 
-    const phonetics = data?.[0]?.phonetics || [];
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
 
-    const audioObj = phonetics.find(
-      (p: any) => p.audio && p.audio.includes(".mp3")
-    );
+      utterance.lang = "en-US";
+      utterance.rate = 0.8;   // 🔥 clearer pronunciation
+      utterance.pitch = 1.05;
+      utterance.volume = 1;
 
-    const audio = audioObj?.audio;
+      speechSynthesis.speak(utterance);
+    } catch (err) {
+      speechSynthesis.cancel();
 
-    // HIGH QUALITY AUDIO (unchanged UI)
-    if (audio) {
-      const sound = new Audio(audio);
-      sound.preload = "auto";
-      sound.volume = 1;
+      const fallback = new SpeechSynthesisUtterance(word);
+      fallback.lang = "en-US";
+      fallback.rate = 0.8;
 
-      sound.oncanplaythrough = () => {
-        sound.play();
-      };
-
-      return;
+      speechSynthesis.speak(fallback);
+    } finally {
+      setTimeout(() => setAudioLoadingId(null), 1000);
     }
-
-    // FIXED SPEECH SYNTHESIS (better clarity)
-    const utterance = new SpeechSynthesisUtterance(word);
-
-    const voices = speechSynthesis.getVoices();
-
-    const preferredVoice =
-      voices.find(
-        (v) =>
-          v.lang.includes("en-US") &&
-          (v.name.toLowerCase().includes("google") ||
-            v.name.toLowerCase().includes("microsoft"))
-      ) ||
-      voices.find((v) => v.lang.includes("en-US")) ||
-      voices[0];
-
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-
-    utterance.lang = "en-US";
-    utterance.rate = 0.8;   // clearer pronunciation
-    utterance.pitch = 1.05;
-    utterance.volume = 1;
-
-    speechSynthesis.speak(utterance);
-
-    // showToast("Clear pronunciation");
-  } catch (err) {
-    speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(word);
-    utterance.lang = "en-US";
-    utterance.rate = 0.8;
-
-    speechSynthesis.speak(utterance);
-
-    // showToast("Fallback pronunciation");
-  } finally {
-    setAudioLoadingId(null);
-  }
-};
+  };
 
   // ❌ CLOSE AI RESULT
   const closeAI = (wordId: string) => {
