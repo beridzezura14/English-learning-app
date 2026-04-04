@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit3, Trash2, Star } from "lucide-react";
+import { Edit3, Trash2, Star, Volume2, Loader2 } from "lucide-react";
 
 type Word = {
   id: string;
@@ -33,6 +33,10 @@ export default function DayAccordion({
 
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
   const [aiResults, setAiResults] = useState<Record<string, string>>({});
+
+  // pronunciation states
+  const [audioLoadingId, setAudioLoadingId] = useState<string | null>(null);
+  const [audioCache, setAudioCache] = useState<Record<string, string>>({});
 
   const showToast = (message: string) => {
     setToast({ show: true, message });
@@ -72,16 +76,95 @@ export default function DayAccordion({
         [word.id]: data.text,
       }));
 
-      showToast("AI generated ✨");
+      showToast("AI generated");
     } catch (err) {
       setAiResults((prev) => ({
         ...prev,
-        [word.id]: "Error loading AI 😢",
+        [word.id]: "Error loading AI",
       }));
     } finally {
       setAiLoadingId(null);
     }
   };
+
+  //  PRONUNCIATION FUNCTION
+const playPronunciation = async (word: string, id: string) => {
+  try {
+    setAudioLoadingId(id);
+
+    // FIX: stop "gudva" / overlapping voice
+    speechSynthesis.cancel();
+
+    const res = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+    );
+
+    if (!res.ok) throw new Error("API error");
+
+    const data = await res.json();
+
+    const phonetics = data?.[0]?.phonetics || [];
+
+    const audioObj = phonetics.find(
+      (p: any) => p.audio && p.audio.includes(".mp3")
+    );
+
+    const audio = audioObj?.audio;
+
+    // HIGH QUALITY AUDIO (unchanged UI)
+    if (audio) {
+      const sound = new Audio(audio);
+      sound.preload = "auto";
+      sound.volume = 1;
+
+      sound.oncanplaythrough = () => {
+        sound.play();
+      };
+
+      return;
+    }
+
+    // FIXED SPEECH SYNTHESIS (better clarity)
+    const utterance = new SpeechSynthesisUtterance(word);
+
+    const voices = speechSynthesis.getVoices();
+
+    const preferredVoice =
+      voices.find(
+        (v) =>
+          v.lang.includes("en-US") &&
+          (v.name.toLowerCase().includes("google") ||
+            v.name.toLowerCase().includes("microsoft"))
+      ) ||
+      voices.find((v) => v.lang.includes("en-US")) ||
+      voices[0];
+
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    utterance.lang = "en-US";
+    utterance.rate = 0.8;   // clearer pronunciation
+    utterance.pitch = 1.05;
+    utterance.volume = 1;
+
+    speechSynthesis.speak(utterance);
+
+    // showToast("Clear pronunciation");
+  } catch (err) {
+    speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = "en-US";
+    utterance.rate = 0.8;
+
+    speechSynthesis.speak(utterance);
+
+    // showToast("Fallback pronunciation");
+  } finally {
+    setAudioLoadingId(null);
+  }
+};
 
   // ❌ CLOSE AI RESULT
   const closeAI = (wordId: string) => {
@@ -144,9 +227,25 @@ export default function DayAccordion({
                 {/* WORD */}
                 <div className="flex justify-between items-start gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-white group-hover:text-purple-300">
-                      {w.word}
-                    </h3>
+                    {/* WORD + AUDIO */}
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-bold text-white group-hover:text-purple-300">
+                        {w.word}
+                      </h3>
+
+                      <button
+                        onClick={() => playPronunciation(w.word, w.id)}
+                        className="flex items-center gap-1 text-gray-400 hover:text-purple-400 transition px-2 py-1 rounded-md hover:bg-white/10"
+                      >
+                        {audioLoadingId === w.id ? (
+                          <Loader2 size={16} className="animate-spin text-purple-400" />
+                        ) : (
+                          <Volume2 size={16} />
+                        )}
+
+                        <span className="text-[10px] opacity-70">listen</span>
+                      </button>
+                    </div>
 
                     <p className="text-gray-300 text-sm mt-1">
                       {w.definition}
@@ -189,11 +288,9 @@ export default function DayAccordion({
                   </p>
                 )}
 
-                {/* AI RESULT + CLOSE */}
+                {/* AI RESULT */}
                 {aiResults[w.id] && (
                   <div className="mt-4 rounded-xl border border-green-500/20 bg-green-500/10 p-3 backdrop-blur-md">
-                    
-                    {/* HEADER */}
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-[10px] tracking-wider text-green-400 uppercase">
                         AI Explanation
@@ -207,7 +304,6 @@ export default function DayAccordion({
                       </button>
                     </div>
 
-                    {/* CONTENT */}
                     <p className="text-xs leading-relaxed text-green-200">
                       {aiResults[w.id]}
                     </p>
@@ -220,7 +316,7 @@ export default function DayAccordion({
                     onClick={() => handleAI(w)}
                     className="py-2 px-4 rounded-lg text-[15px] hover:bg-purple-500/20 text-purple-300 cursor-pointer"
                   >
-                   Explain with AI
+                    Explain with AI
                   </button>
 
                   <button
@@ -236,7 +332,6 @@ export default function DayAccordion({
                   >
                     <Trash2 size={16} className="text-red-300" />
                   </button>
-
                 </div>
               </div>
             ))}

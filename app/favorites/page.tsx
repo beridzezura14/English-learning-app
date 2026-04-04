@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Volume2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
@@ -18,6 +19,7 @@ export default function FavoritesPage() {
 
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
   const [aiResults, setAiResults] = useState<Record<string, string>>({});
+  const [audioLoadingId, setAudioLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFavorites();
@@ -34,7 +36,7 @@ export default function FavoritesPage() {
     setLoading(false);
   };
 
-  // ⭐ REMOVE FROM FAVORITES
+  // REMOVE FROM FAVORITES
   const removeFromFavorites = async (id: string) => {
     const { error } = await supabase
       .from("words")
@@ -51,7 +53,7 @@ export default function FavoritesPage() {
     }
   };
 
-  // 🤖 AI
+  // AI
   const handleAI = async (word: Word) => {
     try {
       setAiLoadingId(word.id);
@@ -80,13 +82,57 @@ export default function FavoritesPage() {
     }
   };
 
-  // ❌ CLOSE AI
+  // CLOSE AI
   const closeAI = (id: string) => {
     setAiResults((prev) => {
       const copy = { ...prev };
       delete copy[id];
       return copy;
     });
+  };
+
+  const playPronunciation = (word: string, id: string) => {
+    try {
+      setAudioLoadingId(id);
+
+      // 🔥 FIX: stop overlapping / "gudva" voice
+      speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(word);
+
+      const voices = speechSynthesis.getVoices();
+
+      const preferredVoice =
+        voices.find(
+          (v) =>
+            v.lang.includes("en-US") &&
+            (v.name.toLowerCase().includes("google") ||
+              v.name.toLowerCase().includes("microsoft"))
+        ) ||
+        voices.find((v) => v.lang.includes("en-US")) ||
+        voices[0];
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      utterance.lang = "en-US";
+      utterance.rate = 0.8;   // 🔥 clearer pronunciation
+      utterance.pitch = 1.05;
+      utterance.volume = 1;
+
+      speechSynthesis.speak(utterance);
+    } catch (err) {
+      speechSynthesis.cancel();
+
+      const fallback = new SpeechSynthesisUtterance(word);
+      fallback.lang = "en-US";
+      fallback.rate = 0.8;
+
+      speechSynthesis.speak(fallback);
+    } finally {
+      setTimeout(() => setAudioLoadingId(null), 1000);
+    }
   };
 
   if (loading) {
@@ -103,7 +149,7 @@ export default function FavoritesPage() {
       {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-pink-300">
-          ⭐ Favorite Words
+          Favorite Words
         </h1>
 
         <Link
@@ -117,7 +163,7 @@ export default function FavoritesPage() {
       {/* EMPTY */}
       {words.length === 0 && (
         <div className="text-center text-gray-400 mt-20">
-          No favorite words yet ⭐
+          No favorite words yet
         </div>
       )}
 
@@ -130,9 +176,18 @@ export default function FavoritesPage() {
           >
 
             {/* WORD */}
-            <h2 className="text-lg font-bold text-pink-300">
-              {w.word}
-            </h2>
+            <div className="flex gap-4">
+              <h2 className="text-lg font-bold text-pink-300">
+                {w.word}
+              </h2>
+              <button
+                onClick={() => playPronunciation(w.word, w.id)}
+                className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 cursor-pointer"
+              >
+                <Volume2 size={14} />
+                Listen
+              </button>
+            </div>
 
             <p className="text-gray-300 mt-2">
               {w.definition}
@@ -146,14 +201,14 @@ export default function FavoritesPage() {
             <div className="mt-4 flex gap-4">
               <button
                 onClick={() => handleAI(w)}
-                className="text-xs px-3 py-1 rounded-lg bg-purple-500/20 text-purple-300 hover:bg-purple-500/30"
+                className="text-xs px-3 py-1 rounded-lg bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 cursor-pointer"
               >
                 Explain with AI
               </button>
 
               <button
                 onClick={() => removeFromFavorites(w.id)}
-                className="text-xs text-red-400 hover:text-red-300"
+                className="text-xs text-red-400 hover:text-red-300 cursor-pointer"
               >
                 Remove
               </button>
