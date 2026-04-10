@@ -53,7 +53,7 @@ export default function Login() {
     setResetLoading(true);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "https://learnenglish-vert.vercel.app/reset-password",
+      redirectTo: "https://learningenglish-kappa.vercel.app/reset-password",
     });
 
     if (error) {
