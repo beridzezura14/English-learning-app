@@ -3,7 +3,7 @@ import { BookOpen, Brain, TrendingUp } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0b1220] via-[#0f172a] to-[#0b1220] text-white flex items-center justify-center p-6">
+    <main className="pt-38 bg-gradient-to-br from-[#0b1220] via-[#0f172a] to-[#0b1220] text-white flex items-center justify-center p-6">
       <div className="text-center max-w-2xl">
         {/* HERO TITLE */}
         <h1 className="text-4xl md:text-6xl font-bold leading-tight">
